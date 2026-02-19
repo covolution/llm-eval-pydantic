@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Case, Assertion } from '../types';
 
 interface CaseDetailProps {
@@ -7,14 +7,25 @@ interface CaseDetailProps {
 }
 
 export const CaseDetail: React.FC<CaseDetailProps> = ({ caseData, onClose }) => {
+  const [filter, setFilter] = useState<'all' | 'pass' | 'fail'>('all');
+  
   const assertions = Object.entries(caseData.assertions || {}) as [string, Assertion][];
   const totalCount = assertions.length;
   const passedCount = assertions.filter(([_, a]) => a.value).length;
+  const failedCount = totalCount - passedCount;
   const isPass = passedCount === totalCount;
 
   // Extract tokens for header
   const inputTokens = caseData.attributes?.input_tokens || caseData.inputs?.meta?.usage?.input_tokens || 0;
   const outputTokens = caseData.attributes?.output_tokens || caseData.inputs?.meta?.usage?.output_tokens || 0;
+
+  // Filter assertions
+  const filteredAssertions = assertions.filter(([_, a]) => {
+    if (filter === 'all') return true;
+    if (filter === 'pass') return a.value;
+    if (filter === 'fail') return !a.value;
+    return true;
+  });
 
   // Helper to format large text blocks
   const TextBlock = ({ title, content }: { title: string; content?: string }) => {
@@ -100,9 +111,39 @@ export const CaseDetail: React.FC<CaseDetailProps> = ({ caseData, onClose }) => 
           {/* Right Column: Assertions only */}
           <div className="space-y-6">
             <div>
-              <h4 className="text-sm font-semibold text-slate-900 mb-3 uppercase tracking-wide">Assertions</h4>
+              <div className="flex items-center justify-between mb-3">
+                 <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Assertions</h4>
+                 
+                 {/* Filter Toggles */}
+                 <div className="flex bg-slate-100 p-1 rounded-lg text-xs font-medium">
+                    <button 
+                        onClick={() => setFilter('all')}
+                        className={`px-3 py-1 rounded-md transition-all ${filter === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        All <span className="text-slate-400 ml-1">{totalCount}</span>
+                    </button>
+                    <button 
+                        onClick={() => setFilter('pass')}
+                        className={`px-3 py-1 rounded-md transition-all ${filter === 'pass' ? 'bg-white text-green-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        Pass <span className="ml-1 opacity-60">{passedCount}</span>
+                    </button>
+                    <button 
+                        onClick={() => setFilter('fail')}
+                        className={`px-3 py-1 rounded-md transition-all ${filter === 'fail' ? 'bg-white text-red-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        Fail <span className="ml-1 opacity-60">{failedCount}</span>
+                    </button>
+                 </div>
+              </div>
+
               <div className="space-y-3">
-                {assertions.map(([key, assertion], idx) => {
+                {filteredAssertions.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400 text-sm italic border-2 border-dashed border-slate-100 rounded-lg">
+                        No assertions match this filter.
+                    </div>
+                ) : (
+                    filteredAssertions.map(([key, assertion], idx) => {
                    const judgeModel = assertion.source?.arguments?.model;
                    return (
                   <div 
@@ -130,7 +171,8 @@ export const CaseDetail: React.FC<CaseDetailProps> = ({ caseData, onClose }) => 
                       <div className="mt-2 text-sm text-slate-500 italic">No specific reason provided for this failure.</div>
                     )}
                   </div>
-                )})}
+                )})
+                )}
               </div>
             </div>
           </div>
