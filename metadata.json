@@ -1,0 +1,5 @@
+{
+  "name": "LLM Eval Explorer",
+  "description": "A tool to visualize and explore LLM evaluation reports, focusing on failure analysis and assertion reasons.",
+  "requestFramePermissions": []
+}
