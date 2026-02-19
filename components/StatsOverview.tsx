@@ -19,6 +19,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ report }) => {
     let totalInputTokens = 0;
     let totalOutputTokens = 0;
     const modelSet = new Set<string>();
+    const judgeModelSet = new Set<string>();
 
     report.cases.forEach((c: Case) => {
       const assertions = Object.values(c.assertions || {});
@@ -40,11 +41,19 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ report }) => {
       totalInputTokens += inTokens;
       totalOutputTokens += outTokens;
 
-      // Model
+      // Target Model
       const model = c.attributes?.model || c.inputs?.meta?.request?.model;
       if (model) {
         modelSet.add(model);
       }
+
+      // Judge Model (from assertions)
+      assertions.forEach((a) => {
+        const judge = a.source?.arguments?.model;
+        if (typeof judge === 'string') {
+          judgeModelSet.add(judge);
+        }
+      });
     });
 
     return {
@@ -55,6 +64,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ report }) => {
       avgInputTokens: report.cases.length ? totalInputTokens / report.cases.length : 0,
       avgOutputTokens: report.cases.length ? totalOutputTokens / report.cases.length : 0,
       models: Array.from(modelSet),
+      judgeModels: Array.from(judgeModelSet),
     };
   }, [report]);
 
@@ -64,7 +74,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ report }) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       {/* Key Metrics Cards */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <h3 className="text-slate-500 text-sm font-medium uppercase tracking-wider">Total Cases</h3>
@@ -92,12 +102,22 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ report }) => {
       </div>
 
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-        <h3 className="text-slate-500 text-sm font-medium uppercase tracking-wider">Model</h3>
+        <h3 className="text-slate-500 text-sm font-medium uppercase tracking-wider">Target Model</h3>
         <div className="text-xl font-bold text-slate-900 mt-2 truncate" title={stats.models.join(', ')}>
           {stats.models.length === 0 ? 'N/A' : stats.models.length === 1 ? stats.models[0] : `${stats.models.length} Models`}
         </div>
         <div className="text-sm text-slate-400 mt-2 truncate">
-           {stats.models.length > 1 ? 'Multiple targets' : 'Target LLM'}
+           {stats.models.length > 1 ? 'Multiple targets' : 'LLM under test'}
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <h3 className="text-slate-500 text-sm font-medium uppercase tracking-wider">Judge Model</h3>
+        <div className="text-xl font-bold text-slate-900 mt-2 truncate" title={stats.judgeModels.join(', ')}>
+          {stats.judgeModels.length === 0 ? 'N/A' : stats.judgeModels.length === 1 ? stats.judgeModels[0] : `${stats.judgeModels.length} Models`}
+        </div>
+        <div className="text-sm text-slate-400 mt-2 truncate">
+           {stats.judgeModels.length > 1 ? 'Multiple evaluators' : 'Evaluator LLM'}
         </div>
       </div>
 

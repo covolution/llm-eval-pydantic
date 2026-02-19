@@ -102,13 +102,20 @@ export const CaseDetail: React.FC<CaseDetailProps> = ({ caseData, onClose }) => 
             <div>
               <h4 className="text-sm font-semibold text-slate-900 mb-3 uppercase tracking-wide">Assertions</h4>
               <div className="space-y-3">
-                {assertions.map(([key, assertion], idx) => (
+                {assertions.map(([key, assertion], idx) => {
+                   const judgeModel = assertion.source?.arguments?.model;
+                   return (
                   <div 
                     key={idx} 
                     className={`border rounded-lg p-4 ${assertion.value ? 'border-green-200 bg-green-50/50' : 'border-red-200 bg-red-50/50'}`}
                   >
                     <div className="flex justify-between items-start mb-1">
-                      <span className="font-semibold text-slate-800">{assertion.name || key}</span>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-slate-800">{assertion.name || key}</span>
+                        {judgeModel && (
+                           <span className="text-xs text-slate-500 font-mono mt-0.5">Judge: {judgeModel}</span>
+                        )}
+                      </div>
                       <span className={`text-xs px-2 py-1 rounded-full font-bold ${assertion.value ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
                         {assertion.value ? 'PASS' : 'FAIL'}
                       </span>
@@ -123,7 +130,7 @@ export const CaseDetail: React.FC<CaseDetailProps> = ({ caseData, onClose }) => 
                       <div className="mt-2 text-sm text-slate-500 italic">No specific reason provided for this failure.</div>
                     )}
                   </div>
-                ))}
+                )})}
               </div>
             </div>
           </div>
