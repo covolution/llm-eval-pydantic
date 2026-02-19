@@ -18,6 +18,8 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ report }) => {
     let totalDuration = 0;
     let totalInputTokens = 0;
     let totalOutputTokens = 0;
+    let totalAssertions = 0;
+    let passedAssertions = 0;
     const modelSet = new Set<string>();
     const judgeModelSet = new Set<string>();
 
@@ -25,6 +27,9 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ report }) => {
       const assertions = Object.values(c.assertions || {});
       const hasFailure = assertions.some((a) => !a.value);
       
+      totalAssertions += assertions.length;
+      passedAssertions += assertions.filter(a => a.value).length;
+
       if (hasFailure) {
         failed++;
       } else {
@@ -60,6 +65,9 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ report }) => {
       passed,
       failed,
       total: report.cases.length,
+      totalAssertions,
+      passedAssertions,
+      failedAssertions: totalAssertions - passedAssertions,
       avgDuration: report.cases.length ? totalDuration / report.cases.length : 0,
       avgInputTokens: report.cases.length ? totalInputTokens / report.cases.length : 0,
       avgOutputTokens: report.cases.length ? totalOutputTokens / report.cases.length : 0,
@@ -83,13 +91,35 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ report }) => {
       </div>
 
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-        <h3 className="text-slate-500 text-sm font-medium uppercase tracking-wider">Pass Rate</h3>
-        <div className="text-4xl font-bold text-slate-900 mt-2">
-          {stats.total > 0 ? ((stats.passed / stats.total) * 100).toFixed(1) : 0}%
+        <h3 className="text-slate-500 text-sm font-medium uppercase tracking-wider mb-2">Pass Rate</h3>
+        
+        {/* Case Pass Rate */}
+        <div>
+            <div className="flex items-baseline gap-2">
+                <div className="text-4xl font-bold text-slate-900">
+                {stats.total > 0 ? ((stats.passed / stats.total) * 100).toFixed(1) : 0}%
+                </div>
+                <div className="text-xs text-slate-400 font-medium uppercase tracking-wide">Cases</div>
+            </div>
+            <div className="flex gap-3 text-sm mt-1">
+                <span className="text-green-600 font-medium">{stats.passed} Passed</span>
+                <span className="text-red-500 font-medium">{stats.failed} Failed</span>
+            </div>
         </div>
-        <div className="flex gap-3 text-sm mt-2">
-          <span className="text-green-600 font-medium">{stats.passed} Passed</span>
-          <span className="text-red-500 font-medium">{stats.failed} Failed</span>
+
+        {/* Assertion Pass Rate */}
+        <div className="mt-4 pt-3 border-t border-slate-100">
+             <div className="flex justify-between items-baseline mb-1">
+                 <span className="text-slate-500 text-xs font-medium uppercase tracking-wider">Assertions</span>
+                 <span className="font-bold text-slate-700">
+                    {stats.totalAssertions > 0 ? ((stats.passedAssertions / stats.totalAssertions) * 100).toFixed(1) : 0}%
+                 </span>
+             </div>
+             <div className="flex gap-2 text-xs">
+                <span className="text-green-600 font-medium">{stats.passedAssertions} Pass</span>
+                <span className="text-slate-300">|</span>
+                <span className="text-red-500 font-medium">{stats.failedAssertions} Fail</span>
+             </div>
         </div>
       </div>
 

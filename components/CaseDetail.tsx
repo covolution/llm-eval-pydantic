@@ -83,8 +83,8 @@ export const CaseDetail: React.FC<CaseDetailProps> = ({ caseData, onClose }) => 
           
           {/* Left Column: Data & Metadata */}
           <div className="flex flex-col gap-6">
-            <TextBlock title="Prompt" content={caseData.inputs.prompt} />
             <TextBlock title="Actual Output" content={caseData.output} />
+            <TextBlock title="Prompt" content={caseData.inputs.prompt} />
             
              {/* Metadata Section moved here */}
             <div>
